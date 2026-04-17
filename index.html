@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+
+<style>
+body{margin:0;background:#000;color:white;font-family:sans-serif}
+#map{height:100vh}
+.panel{position:absolute;top:20px;left:20px;background:#111;padding:10px;border-radius:10px}
+button{padding:10px;border:none;background:gold;color:black;border-radius:8px}
+</style>
+</head>
+
+<body>
+
+<div class="panel">
+  <div>🪙 Balance: <span id="balance">0</span></div>
+  <button onclick="claimBonus()">🎁 BONUS</button>
+</div>
+
+<div id="map"></div>
+
+<script>
+const supabase = supabase.createClient(
+ "https://omcrlaoicvtkojeeyvwb.supabase.co",
+ "sb_publishable_g12t45A3qd15z2DML2g1og_poyavfk0"
+);
+
+// vaqtinchalik user (keyin login qilamiz)
+let userId = localStorage.getItem("uid");
+if(!userId){
+ userId = crypto.randomUUID();
+ localStorage.setItem("uid", userId);
+
+ // DB ga qo‘shamiz
+ supabase.from("users").insert({id:userId});
+}
+
+// BALANCE
+async function load(){
+ const {data} = await supabase.from("users").select("coins").eq("id",userId).single();
+ if(data) document.getElementById("balance").innerText = data.coins;
+}
+
+// BONUS
+async function claimBonus(){
+ const {data} = await supabase.rpc("claim_daily_bonus",{p_user:userId});
+ alert(data === 0 ? "Bugun oldingiz ❌" : "🎁 +" + data);
+ load();
+}
+
+// START
+load();
+</script>
+
+</body>
+</html>
